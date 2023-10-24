@@ -4,7 +4,7 @@ import telebot
 from telebot import types
 import time
 
-bot_token = '6712767909:AAHtcE4dDZQYgLPiO-Im0ODTYMTM234j5x8'  # Вкажіть токен вашого бота
+bot_token = '6343291110:AAGwqZ6Fg1FGfh32qT3JxgGb3uqvjKPRmS8'  # Вкажіть токен вашого бота
 bot = telebot.TeleBot(bot_token)
 
 admin_user = '329798696'
@@ -21,7 +21,8 @@ primary_menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 btn_help = types.KeyboardButton("Обратная связь")
 btn_int = types.KeyboardButton("Инструкция")
 btn_menu = types.KeyboardButton("Вызов меню")
-primary_menu.add(btn_menu, btn_int, btn_help)
+btn_info = types.KeyboardButton("Информация о счёте")
+primary_menu.add(btn_menu, btn_int, btn_help, btn_info)
 
 # Кнопки для авторизации
 markup = types.InlineKeyboardMarkup(row_width=2)
@@ -63,9 +64,9 @@ menu_balance.add(btn_back)
 menu_out = types.InlineKeyboardMarkup(row_width=2)
 out_btn1 = types.InlineKeyboardButton("История депозитов", callback_data='dep_hist')
 out_btn2 = types.InlineKeyboardButton('История выводов', callback_data='out_hist')
-btn_back = types.InlineKeyboardButton("Назад", callback_data="back_s")
+btn_back_to_bal = types.InlineKeyboardButton("Назад", callback_data="back_to_bal")
 menu_out.add(out_btn1, out_btn2)
-menu_out.add(btn_back)
+menu_out.add(btn_back_to_bal)
 
 # Кнопки депозита
 menu_deposit = types.InlineKeyboardMarkup(row_width=2)
@@ -79,9 +80,10 @@ menu_deposit.add(btn_back_dep)
 menu_card = types.InlineKeyboardMarkup(row_width=2)
 car_btn1 = types.InlineKeyboardButton('Сбербанк', callback_data='sber')
 car_btn2 = types.InlineKeyboardButton('Тинькофф', callback_data='tink')
-btn_back = types.InlineKeyboardButton("Назад", callback_data="back_s")
+btn_back_to_card = types.InlineKeyboardButton("Назад", callback_data="back_to_cards")
+
 menu_card.add(car_btn1, car_btn2)
-menu_card.add(btn_back)
+menu_card.add(btn_back_to_card)
 
 tagret_m = types.InlineKeyboardMarkup(row_width=2)
 pay_usdt = types.InlineKeyboardButton("Оплатил", callback_data='oplata')
@@ -175,7 +177,7 @@ def check_balance(user_id):
         if row[0] == user_id:
             return row[1] 
     return None
-
+mes_info = ""
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     user_name = message.from_user.first_name
@@ -188,12 +190,12 @@ def send_welcome(message):
 📌 Наш бот предоставляет уникальный функционал для успешных ставок в мире киберспорта прямо в телеграмм\n
 📌 Пополняй баланс любым удобным способом и начинай игру вместе с нами\n
 📌 Ставь на понравившейся исход и выигрывай!\n\n
-🙋🏻‍♂️ Ник: {user_nickname}
-👤 ID: {iser_id}
-🎰 Активных ставок: в разработке\n
 Удачных ставок! 💸💸💸"""
+    
+    mes_info = f"""🙋🏻‍♂️ Ник: {user_nickname}
+👤 ID: {iser_id}
+🎰 Активных ставок: в разработке"""
 
-    bot.send_message(message.chat.id, hi_mes + hi_mes_, reply_markup=primary_menu)
     bot.send_message(message.chat.id, "Выберите опцию", reply_markup=markup)
     return
 
@@ -238,7 +240,8 @@ def callback_query(call):
             for key in data.keys():
                 if len(data[key]) >= 3:  # Проверяем, что есть достаточно данных
                     name1, name2 = data[key][0], data[key][2]
-                    view_markup.add(types.InlineKeyboardButton(f'{name1} | {name2}', callback_data=f"bet_{key}"))
+                    if key != list(data.keys())[-1]:
+                        view_markup.add(types.InlineKeyboardButton(f'{name1} | {name2}', callback_data=f"bet_{key}"))
             view_markup.add(types.InlineKeyboardButton("Назад", callback_data="back_s"))
             
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Ставки', reply_markup=view_markup)
@@ -285,11 +288,11 @@ def callback_query(call):
 
             bot.send_message(user_id, 'Введите сумму')
 
-            @bot.message_handler(func=lambda message: message.text.startswith('ставка '))
+            @bot.message_handler(func=lambda message: message.text.startswith(''))
             def handle_betpay_message(message):
                 try:
                     user_id = message.from_user.id  # Получение уникального идентификатора пользователя
-                    user_data[user_id]['updata'] = float(message.text[7:])
+                    user_data[user_id]['updata'] = float(message.text[0:])
                     amount = user_data[user_id]['updata']
                     
                     if update_balance_xlsx(user_id, amount) is False:
@@ -409,6 +412,8 @@ def callback_query(call):
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="История выводов в разработке", reply_markup=menu_markup)
     elif call.data == 'back_to_cards':
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Выберите карту для оплаты", reply_markup=menu_deposit)
+    elif call.data == 'back_to_bal':
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Мой баланс💰💰💰", reply_markup=menu_balance)
 
 # Обробка Виклику меню
 @bot.message_handler(func=lambda message: message.text == 'Вызов меню')
@@ -423,8 +428,23 @@ def instruction(message):
 # Зворотній зв'язок   
 @bot.message_handler(func=lambda message: message.text == "Обратная связь")
 def call_message(message):
-    bot.send_message(message.chat.id, "По всем вопросам обращатся @user")
+    bot.send_message(message.chat.id, "По всем вопросам обращаться @user")
 
+# Информация о счете
+@bot.message_handler(func=lambda message: message.text == 'Информация о счёте')
+def menu(message):
+    user_name = message.from_user.first_name
+    user_nickname = message.from_user.username if message.from_user.username else "Нет никнейма"
+    iser_id = message.from_user.id
+
+    # Создание сообщения с User ID и никнеймом
+    
+    message_text = f"""🙋🏻‍♂️ Ник: {user_nickname}
+👤 ID: {iser_id}
+🎰 Активных ставок: в разработке
+Главное меню 🏠"""
+    # Отправка сообщения
+    bot.send_message(message.chat.id, message_text, reply_markup=menu_markup)
 
 import signal
 
