@@ -6,11 +6,11 @@ import time
 
 bot_token = '6343291110:AAGwqZ6Fg1FGfh32qT3JxgGb3uqvjKPRmS8'  # Вкажіть токен вашого бота
 bot = telebot.TeleBot(bot_token)
+mark = []
+mark.append("some data")
 
 admin_user = '329798696'
-# users_file = r'/home/lokalbruger/bot/bot_v2/users_info.xlsx'
-# bet_list = r'/home/lokalbruger/bot/bot_v2/bet_list.xlsx'
-# history = r'/home/lokalbruger/bot/bot_v2/history.xlsx'
+
 users_file = 'users_info.xlsx'
 bet_list = 'bet_list.xlsx'
 history = 'history.xlsx'
@@ -126,7 +126,7 @@ def view_line():
     data_line = {}
     for row in ws.iter_rows(values_only=True):
         key = row[4]
-        value = [row[0], row[1], row[2], row[3]]  # Используйте квадратные скобки для создания списка
+        value = [row[0], row[1], row[2], row[3], row[4]]  # Используйте квадратные скобки для создания списка
         data_line[key] = value
 
     return data_line
@@ -236,34 +236,63 @@ def callback_query(call):
     elif call.data == 'dota2':
         try:
             data = view_line()
+            # for key in data.keys():
+            #     print(len(data[key][4]))
+            #     print(data[key][4][0:4])
             view_markup = types.InlineKeyboardMarkup(row_width=1)
             for key in data.keys():
                 if len(data[key]) >= 3:  # Проверяем, что есть достаточно данных
                     name1, name2 = data[key][0], data[key][2]
-                    if key != list(data.keys())[-1]:
-                        view_markup.add(types.InlineKeyboardButton(f'{name1} | {name2}', callback_data=f"bet_{key}"))
+                    if data[key][4]:
+                        if key != list(data.keys())[-1] and data[key][4][0:4] == "яяяя":
+                            view_markup.add(types.InlineKeyboardButton(f'{name1}   🆚   {name2}', callback_data=f"bet_{key}"))
             view_markup.add(types.InlineKeyboardButton("Назад", callback_data="back_s"))
             
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Ставки', reply_markup=view_markup)
         except:
-            bot.send_message(user_id, "Помилка виводу линії")
+            bot.send_message(user_id, "Ошибка вывода линии")
             menu_sportlist
     elif call.data == 'cs2':
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Ставки по кс2 временно не доступны", reply_markup=menu_markup)
+    elif call.data.startswith('bet__'):
+        print("")
     elif call.data.startswith('bet_'):
-        try:
+        # try:
+        if 1 == 1:
+            
             key = call.data[4:]
+            mark_ = key[0] + key[4]
             data = view_line()
-            message_text = f"{data[key][0]} {data[key][1]} | {data[key][2]} {data[key][3]}"
             menu_b = types.InlineKeyboardMarkup(row_width=2)
-            btn_1 = types.InlineKeyboardButton(f"{data[key][0]} {data[key][1]}", callback_data=f'pay{key}_{data[key][0]}')
-            btn_2 = types.InlineKeyboardButton(f"{data[key][2]} {data[key][3]}", callback_data=f'pay{key}_{data[key][2]}')
-            btn_back = types.InlineKeyboardButton("Назад", callback_data="back")
-            menu_b.add(btn_1, btn_2, btn_back)
+            print(1)
 
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=message_text, reply_markup=menu_b)
-        except:
-            bot.send_message(user_id, 'Помилка виводу bet')
+            print("here")
+            # print(data[mark_][0])
+            # print(data[mark_][1])
+
+            # print(data[mark_][2])
+            # print(data[mark_][3])
+
+            # print("here------------")
+            # print("len" , len(data[key]))
+            # print("data[key][4] ", data[key][4])
+            for key in data.keys():
+                if key:
+                    if key[0:2] == mark_ or (key[-1] == mark_[1] and len(key) > 4):
+                        print("***********")
+                        print(key)
+                        print(mark_)
+                        print("***********")
+                        btn_1 = types.InlineKeyboardButton(f"{data[key][0]} {data[key][1]}", callback_data=f'pay{key}_{data[key][0]}')
+                        btn_2 = types.InlineKeyboardButton(f"{data[key][2]} {data[key][3]}", callback_data=f'pay{key}_{data[key][2]}')
+                        menu_b.add(btn_1, btn_2)
+            
+            btn_back = types.InlineKeyboardButton("Назад", callback_data="back")
+            menu_b.add(btn_back)
+
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="message_text", reply_markup=menu_b) //todo
+        # except:
+        #     bot.send_message(user_id, 'Помилка виводу bet')
     elif call.data.startswith('pay'):
         try:
             s = call.data[3:].split('_')
@@ -376,9 +405,11 @@ def callback_query(call):
         data = view_line()
         view_markup = types.InlineKeyboardMarkup(row_width=1)
         for key in data.keys():
-            if len(data[key]) >= 3:  # Проверяем, что есть достаточно данных
-                name1, name2 = data[key][0], data[key][2]
-                view_markup.add(types.InlineKeyboardButton(f'{name1} | {name2}', callback_data=f"bet_{key}"))
+                if len(data[key]) >= 3:  # Проверяем, что есть достаточно данных
+                    name1, name2 = data[key][0], data[key][2]
+                    if data[key][4]:
+                        if key != list(data.keys())[-1] and data[key][4][0:4] == "яяяя":
+                            view_markup.add(types.InlineKeyboardButton(f'{name1}   🆚   {name2}', callback_data=f"bet_{key}"))
         view_markup.add(types.InlineKeyboardButton("Назад", callback_data="back_s"))
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Ставки', reply_markup=view_markup)
     elif call.data == 'back_s':
@@ -460,6 +491,6 @@ while True:
     try:
         bot.polling(none_stop=True)
     except Exception as e:
-        print(f"Виникла помилка: {e}. Повторна спроба підключення через 3 секунди.")
+        print(f"Ошибка: {e}. Подключение через 3 секунды.")
         time.sleep(3)
 
