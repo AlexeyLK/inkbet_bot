@@ -116,7 +116,7 @@ def register_user_in_excel(user_id):
     if not check_user_in_excel(user_id):
         wb = openpyxl.load_workbook(users_file)
         ws = wb.active
-        ws.append([user_id, 0])
+        ws.append([user_id, 50000])
         wb.save(users_file)
     return
 
@@ -195,7 +195,7 @@ def send_welcome(message):
     mes_info = f"""🙋🏻‍♂️ Ник: {user_nickname}
 👤 ID: {iser_id}
 🎰 Активных ставок: в разработке"""
-
+    bot.send_message(message.chat.id, hi_mes + hi_mes_, reply_markup=primary_menu)
     bot.send_message(message.chat.id, "Выберите опцию", reply_markup=markup)
     return
 
@@ -290,7 +290,9 @@ def callback_query(call):
             btn_back = types.InlineKeyboardButton("Назад", callback_data="back")
             menu_b.add(btn_back)
 
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="message_text", reply_markup=menu_b) //todo
+
+            m_text = "Cделать ставку\n\n 🎮 Выбран вид спорта - Dota 2 \n 🏆 Выбран турнир - TI 2023 \n 🛡 Выберите матч:"
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=m_text, reply_markup=menu_b)
         # except:
         #     bot.send_message(user_id, 'Помилка виводу bet')
     elif call.data.startswith('pay'):
@@ -331,7 +333,10 @@ def callback_query(call):
 
                     else:
                         save_data_to_excel(user_data[user_id], user_id, history)
-                        bot.send_message(user_id, f"Ставка на сумму {amount} прошла успешна. Желаем удачи!", reply_markup=menu_markup)
+
+                        print(">>>>", user_data[user_id]['updata'])
+
+                        bot.send_message(user_id, f"Главное меню 🏠\n\n Ставка: {s[:-1]} \n Кеф: {s[-1]} \n Сумма ставки: {amount} \n Желаем удачи!", reply_markup=menu_markup)
                 except:
                     bot.send_message(user_id, "Пожалуйства введите правильную сумму ставки")
 
@@ -470,10 +475,10 @@ def menu(message):
 
     # Создание сообщения с User ID и никнеймом
     
-    message_text = f"""🙋🏻‍♂️ Ник: {user_nickname}
+    message_text = f"""Главное меню 🏠\n
+🙋🏻‍♂️ Ник: {user_nickname}
 👤 ID: {iser_id}
-🎰 Активных ставок: в разработке
-Главное меню 🏠"""
+🎰 Активных ставок: в разработке"""
     # Отправка сообщения
     bot.send_message(message.chat.id, message_text, reply_markup=menu_markup)
 
